@@ -2,12 +2,43 @@ import mongoose from "mongoose";
 
 // set rule/schema
 const userSchema = new mongoose.Schema({
-  fullName: String,
-  email: String,
-  password: String,
-  gender: String,
-  phoneNumber: String,
-  address: String,
+  fullName: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 255,
+  },
+  email: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 100,
+    unique: true, //index => same email cannot be repeated in user table
+  },
+  password: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  gender: {
+    type: String,
+    required: true,
+    trim: true,
+    enum: ["male", "female", "other", "preferNotToSay"],
+  },
+  phoneNumber: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 20,
+    minlength: 10,
+  },
+  address: {
+    type: String,
+    required: false,
+    trim: true,
+    maxlength: 255,
+  },
 });
 
 // create table/model/collection
