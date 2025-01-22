@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 // set rule/schema
 const userSchema = new mongoose.Schema({
@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true,
     maxlength: 100,
+    lowercase: true,
     unique: true, //index => same email cannot be repeated in user table
   },
   password: {
@@ -24,7 +25,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    enum: ["male", "female", "other", "preferNotToSay"],
+    enum: ['male', 'female', 'other', 'preferNotToSay'],
   },
   phoneNumber: {
     type: String,
@@ -42,7 +43,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // create table/model/collection
-const UserTable = mongoose.model("User", userSchema);
+const UserTable = mongoose.model('User', userSchema);
 
 export default UserTable;
 
