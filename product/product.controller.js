@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Yup from 'yup';
 import isUser from '../middleware/authentication.middleware.js';
 import ProductTable from './product.model.js';
+import { validateMongoIdFromReqParams } from '../middleware/validate.mongo.id.js';
 
 const router = express.Router();
 
@@ -55,18 +56,7 @@ router.post(
 router.get(
   '/product/detail/:id',
   isUser,
-  async (req, res, next) => {
-    // extract product id from req.params
-    const productId = req.params.id;
-
-    const productIDIsValid = mongoose.isValidObjectId(productId);
-
-    if (!productIDIsValid) {
-      return res.status(400).send({ message: 'Invalid product id.' });
-    }
-
-    next();
-  },
+  validateMongoIdFromReqParams,
   async (req, res) => {
     // extract product id from req.params
     const productId = req.params.id;
@@ -90,19 +80,7 @@ router.get(
 router.delete(
   '/product/delete/:id',
   isUser,
-  (req, res, next) => {
-    // extract id from req.params
-    const productId = req.params.id;
-
-    // check for mongo id validity
-    const isValidId = mongoose.isValidObjectId(productId);
-
-    // if not valid id , throw error
-    if (!isValidId) {
-      return res.status(400).send({ message: 'Invalid product id.' });
-    }
-    next();
-  },
+  validateMongoIdFromReqParams,
   async (req, res) => {
     // extract product id from req.params
     const productId = req.params.id;
@@ -121,6 +99,51 @@ router.delete(
     return res
       .status(200)
       .send({ message: 'Product is deleted successfully.' });
+  }
+);
+
+// list products
+router.post(
+  '/product/list',
+  isUser,
+  async (req, res, next) => {
+    const paginationSchema = Yup.object({
+      page: Yup.number().positive().integer().default(1),
+      limit: Yup.number().positive().integer().default(10),
+    });
+
+    try {
+      req.body = await paginationSchema.validate(req.body);
+    } catch (error) {
+      return res.status(400).send({ message: error.message });
+    }
+    next();
+  },
+  async (req, res) => {
+    // extract page and limit from req.body
+    const paginationData = req.body;
+
+    const limit = paginationData.limit;
+    const page = paginationData.page;
+
+    const skip = (page - 1) * limit;
+
+    const products = await ProductTable.aggregate([
+      {
+        $match: {},
+      },
+
+      { $skip: skip },
+      { $limit: limit },
+    ]);
+
+    const totalItem = await ProductTable.find().countDocuments();
+
+    const totalPage = Math.ceil(totalItem / limit);
+
+    return res
+      .status(200)
+      .send({ message: 'success', productList: products, totalPage });
   }
 );
 export { router as productController };
