@@ -2,7 +2,7 @@ import express from 'express';
 import UserTable from './user.model.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-
+import Yup from 'yup';
 const router = express.Router();
 
 // register
