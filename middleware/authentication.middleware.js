@@ -3,10 +3,7 @@ import UserTable from '../user/user.model.js';
 
 const isUser = async (req, res, next) => {
   // extract token from req.headers.authorization
-  const authorization = req?.headers?.authorization;
-  const splittedToken = authorization?.split(' ');
-
-  const token = splittedToken?.length === 2 ? splittedToken[1] : null;
+  const token = req?.headers?.authorization?.split(' ')[1];
 
   //   if not token, throw error
   if (!token) {
@@ -31,6 +28,7 @@ const isUser = async (req, res, next) => {
 
   //  find user using email from payload
   const user = await UserTable.findOne({ email: payload.email });
+
   //   if user does not exist in our system, throw error
   if (!user) {
     return res.status(401).send({ message: 'Unauthorized.' });

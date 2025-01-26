@@ -146,4 +146,74 @@ router.post(
       .send({ message: 'success', productList: products, totalPage });
   }
 );
+
+router.put(
+  '/product/edit/:id',
+  isUser,
+  validateMongoIdFromReqParams,
+  async (req, res, next) => {
+    // create schema
+    const productValidationSchema = Yup.object({
+      name: Yup.string().required().trim().max(155),
+      brand: Yup.string().required().trim().max(155),
+      price: Yup.number().required().min(0),
+      quantity: Yup.number().required().min(1),
+      category: Yup.string()
+        .required()
+        .trim()
+        .oneOf([
+          'grocery',
+          'electronics',
+          'electrical',
+          'clothing',
+          'kitchen',
+          'kids',
+          'laundry',
+        ]),
+
+      image: Yup.string().notRequired().trim(),
+    });
+
+    try {
+      req.body = await productValidationSchema.validate(req.body);
+      next();
+    } catch (error) {
+      return res.status(400).send({ message: error.message });
+    }
+  },
+
+  async (req, res) => {
+    // extract product id from req.params
+    const productId = req.params.id;
+
+    // find product
+    const product = await ProductTable.findOne({ _id: productId });
+
+    // if not product, throw error
+    if (!product) {
+      return res.status(404).send({ message: 'Product does not exist.' });
+    }
+
+    // extract new values from req.body
+    const newValues = req.body;
+
+    await ProductTable.updateOne(
+      { _id: productId },
+      {
+        $set: {
+          name: newValues.name,
+          brand: newValues.brand,
+          price: newValues.price,
+          quantity: newValues.quantity,
+          category: newValues.category,
+        },
+      }
+    );
+
+    return res
+      .status(200)
+      .send({ message: 'Product is updated successfully.' });
+  }
+);
+
 export { router as productController };
